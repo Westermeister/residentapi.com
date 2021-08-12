@@ -1,5 +1,8 @@
 {
   "devDependencies": {
     "prettier": "2.3.2"
+  },
+  "dependencies": {
+    "argon2": "0.28.2"
   }
 }
