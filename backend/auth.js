@@ -47,3 +47,10 @@ async function verifyKeyHash(key, hash) {
     return false;
   }
 }
+
+module.exports = {
+  generateIdentityKey,
+  generateSecretKey,
+  generateKeyHash,
+  verifyKeyHash
+};
