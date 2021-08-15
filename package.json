@@ -4,7 +4,6 @@
   },
   "dependencies": {
     "argon2": "0.28.2",
-    "better-sqlite3": "7.4.3",
-    "express-basic-auth": "1.2.0"
+    "better-sqlite3": "7.4.3"
   }
 }
