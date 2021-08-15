@@ -14,6 +14,7 @@ if (fs.existsSync("../static.db")) {
   fs.unlinkSync("../static.db");
 }
 const staticDatabase = sqlite("../static.db");
+staticDatabase.pragma("journal_mode = WAL");
 staticDatabase
   .prepare(
     "create table quotes (id integer primary key, quote text, author text, context text, source text)"
@@ -32,6 +33,7 @@ for (const row of quotesTable) {
 // Second, we initialize the dynamic database.
 // This is used to store user information, which is dynamically-generated added runtime.
 const dynamicDatabase = sqlite("../dynamic.db");
+dynamicDatabase.pragma("journal_mode = WAL");
 dynamicDatabase
   .prepare(
     "create table if not exists users " +
