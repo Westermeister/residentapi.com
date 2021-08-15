@@ -5,7 +5,7 @@
 
 const argon2 = require("argon2");
 
-const database = require("./database");
+const { dynamicDatabase } = require("./database");
 
 /**
  * Ensure API call is authorized; upon failure, respond with appropriate HTTP status code and message.
@@ -65,8 +65,8 @@ async function authorizer(req, res, next) {
 
   // With user input sanitization done, we do the actual logic.
   // First, verify that the user exists by checking for the identity key,
-  const getUser = database.prepare(
-    "select count(1) from users where identityKey = ? limit 1"
+  const getUser = dynamicDatabase.prepare(
+    "select count(1) from users where identity_key = ? limit 1"
   );
   const userExists = getUser.get(identityHeader)["count(1)"];
   if (!userExists) {
@@ -75,8 +75,8 @@ async function authorizer(req, res, next) {
   }
 
   // Second, ensure that the secret key is valid.
-  const getSecretKey = database.prepare(
-    "select secretKeyHash from users where identityKey = ? limit 1"
+  const getSecretKey = dynamicDatabase.prepare(
+    "select secret_key_hash from users where identity_key = ? limit 1"
   );
   const secretKeyHash = getSecretKey.get(identityHeader).secretKeyHash;
   try {
@@ -89,7 +89,7 @@ async function authorizer(req, res, next) {
     res
       .status(500)
       .send(
-        "Server had internal failure while trying to verify secret key. Please try again later."
+        "Server encountered internal failure while trying to verify secret key. Please try again later."
       );
   }
 }
