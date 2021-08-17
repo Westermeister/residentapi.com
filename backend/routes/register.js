@@ -49,15 +49,27 @@ router.post("/", async (req, res) => {
   req.body.name = req.body.name.substr(0, 1000);
   req.body.email = req.body.email.substr(0, 1000);
 
+  // While we're at it, let's make sure that we don't have a duplicate email.
+  const checkDuplicateEmail = dynamicDatabase.prepare(
+    "select count(1) from users where email = ? limit 1"
+  );
+  const duplicateEmail = checkDuplicateEmail.get(req.body.email)["count(1)"];
+  if (duplicateEmail) {
+    res
+      .status(409)
+      .send(`User already exists with given email: ${req.body.email}`);
+    return;
+  }
+
   // Generate identity key. Make sure it doesn't already exist.
   let identityKey = "identity-" + crypto.randomBytes(32).toString("hex");
   const getDuplicates = dynamicDatabase.prepare(
-    "select count(1) from users where identity_key = ?"
+    "select count(1) from users where identity_key = ? limit 1"
   );
-  let duplicates = getDuplicates.get(identityKey).identity_key;
+  let duplicates = getDuplicates.get(identityKey)["count(1)"];
   while (duplicates > 0) {
     identityKey = "identity-" + crypto.randomBytes(32).toString("hex");
-    duplicates = getDuplicates.get(identityKey).identity_key;
+    duplicates = getDuplicates.get(identityKey)["count(1)"];
   }
 
   // Generate secret key and the Argon2id hash.
