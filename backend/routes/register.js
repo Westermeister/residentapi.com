@@ -84,7 +84,16 @@ router.post("/", async (req, res) => {
 
   // Generate secret key and the Argon2id hash.
   const secretKey = "secret-" + crypto.randomBytes(32).toString("hex");
-  const secretKeyHash = await argon2.hash(secretKey, { type: argon2.argon2id });
+  // Using recommended parameters from Argon2's IETF draft; version 13, option 2:
+  // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-argon2-13#page-13
+  const secretKeyHash = await argon2.hash(secretKey, {
+    type: argon2.argon2id,
+    timeCost: 3,
+    parallelism: 4,
+    memoryCost: 2 ** 16,
+    saltLength: 16,
+    hashLength: 32,
+  });
 
   // Add user to database.
   const addUser = dynamicDatabase.prepare(
