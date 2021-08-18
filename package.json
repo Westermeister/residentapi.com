@@ -1,7 +1,15 @@
 {
   "devDependencies": {
+    "@fullhuman/postcss-purgecss": "4.0.3",
+    "autoprefixer": "10.3.1",
+    "bootstrap": "5.1.0",
+    "cssnano": "5.0.8",
     "eslint": "7.32.0",
-    "prettier": "2.3.2"
+    "http-server": "13.0.0",
+    "postcss": "8.3.6",
+    "postcss-cli": "8.3.1",
+    "prettier": "2.3.2",
+    "sass": "1.38.0"
   },
   "dependencies": {
     "argon2": "0.28.2",
