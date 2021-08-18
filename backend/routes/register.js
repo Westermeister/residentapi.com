@@ -19,10 +19,10 @@ router.use(express.urlencoded({ extended: true }));
 router.post("/", async (req, res) => {
   // Check for required parameters and their types.
   if (
-    req.body["h-captcha-response"] === undefined ||
+    req.body.captcha === undefined ||
     req.body.name === undefined ||
     req.body.email === undefined ||
-    typeof req.body["h-captcha-response"] !== "string" ||
+    typeof req.body.captcha !== "string" ||
     typeof req.body.name !== "string" ||
     typeof req.body.email !== "string"
   ) {
@@ -31,16 +31,26 @@ router.post("/", async (req, res) => {
   }
 
   // Verify that the captcha was successful.
-  const fetchedCaptchaResponse = await fetch(
-    "https://hcaptcha.com/siteverify",
-    {
-      method: "post",
-      body: `response=${req.body["h-captcha-response"]}&secret=${process.env.H_CAPTCHA_SECRET}`,
+  const body = new URLSearchParams();
+  body.append("sitekey", process.env.H_CAPTCHA_SITEKEY);
+  body.append("secret", process.env.H_CAPTCHA_SECRET);
+  body.append("response", req.body.captcha);
+  body.append("remoteip", req.ip);
+  try {
+    const fetchedCaptchaResponse = await fetch(
+      "https://hcaptcha.com/siteverify",
+      {
+        method: "post",
+        body: body,
+      }
+    );
+    const captchaResponse = await fetchedCaptchaResponse.json();
+    if (!captchaResponse.success) {
+      res.status(401).send("Failed to verify captcha");
+      return;
     }
-  );
-  const captchaResponse = await fetchedCaptchaResponse.json();
-  if (!captchaResponse.success) {
-    res.status(401).send("Failed captcha");
+  } catch {
+    res.status(500).send("Failed to verify captcha");
     return;
   }
 

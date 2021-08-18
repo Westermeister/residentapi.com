@@ -11,6 +11,7 @@ const quotes = require("./routes/quotes");
 const register = require("./routes/register");
 
 const app = express();
+app.set("trust proxy", true);
 
 app.use("/quotes", quotes);
 app.use("/register", register);
