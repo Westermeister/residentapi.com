@@ -10,10 +10,10 @@ const sqlite = require("better-sqlite3");
 
 // First, we build the static database.
 // This database holds the built database from the CSV files in the tables/ directory.
-if (fs.existsSync("../static.db")) {
-  fs.unlinkSync("../static.db");
+if (fs.existsSync("./static.db")) {
+  fs.unlinkSync("./static.db");
 }
-const staticDatabase = sqlite("../static.db");
+const staticDatabase = sqlite("./static.db");
 staticDatabase.pragma("journal_mode = WAL");
 staticDatabase
   .prepare(
@@ -30,11 +30,11 @@ for (const row of quotesTable) {
     .run(row.quote, row.author, row.context, row.source);
 }
 
-// Second, we initialize the dynamic database.
-// This is used to store user information, which is dynamically-generated added runtime.
-const dynamicDatabase = sqlite("../dynamic.db");
-dynamicDatabase.pragma("journal_mode = WAL");
-dynamicDatabase
+// Second, we initialize the user database.
+// This is used to store user information, which is dynamically added during runtime.
+const userDatabase = sqlite("./dynamic.db");
+userDatabase.pragma("journal_mode = WAL");
+userDatabase
   .prepare(
     "create table if not exists users " +
       "(id integer primary key, name text, email text, identity_key text, secret_key_hash text)"
@@ -43,5 +43,5 @@ dynamicDatabase
 
 module.exports = {
   staticDatabase,
-  dynamicDatabase,
+  userDatabase,
 };
