@@ -5,6 +5,7 @@
 
 $primary: #b02a37;
 $light: #dee2e6;
+$white: #dee2e6;
 
 @import "../../node_modules/bootstrap/scss/bootstrap";
 
@@ -42,4 +43,9 @@ $light: #dee2e6;
     font-size: 10rem;
     margin-top: 5rem;
   }
+}
+
+#reason {
+  position: absolute;
+  left: -9999px;
 }
