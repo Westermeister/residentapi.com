@@ -8,20 +8,6 @@ const argon2 = require("argon2");
 const { userDatabase } = require("../database/bindings");
 
 /**
- * Validate incoming calls from end users to the API.
- * @param {express.Request} req - Expects headers "identity-key" and "secret-key" i.e. the API keys.
- * @param {express.Response} res - Used to send back error code and relevant message if sanitization failed.
- * @param {express.NextFunction} next - Used to proceed to the next middleware if successful.
- */
-function validateUserRequest(req, res, next) {
-  const cleanRequest = sanitizeRequest(req, res);
-  const authenticRequest = authenticateRequest(req, res);
-  if (cleanRequest && authenticRequest) {
-    next();
-  }
-}
-
-/**
  * Ensure the incoming request is syntactically valid.
  * @param {express.Request} req - Expects headers "identity-key" and "secret-key" i.e. the API keys.
  * @param {express.Response} res - Used to send back error code and relevant message if sanitization failed.
@@ -115,6 +101,42 @@ async function authenticateRequest(req, res) {
         "Server encountered unknown error while trying to verify secret key. Please try again later.",
     });
     return false;
+  }
+}
+
+/**
+ * Rate limit the incoming request, or just update the database with the new timestamp.
+ * @param {express.Request} req - Should have an "identity-key" header; will be used to check last call.
+ * @param {express.Response} res - Used to send back an error message if the request hasn't followed the rate limit.
+ * @returns {boolean} True if request has followed the rate limit, false otherwise.
+ */
+function isRateLimited(req, res) {
+  const currentTime = Date.now();
+  const lastCall = userDatabase
+    .prepare("select last_call from users where identity_key = ? limit 1")
+    .get(req.get("identity-key")).last_call;
+  if (currentTime - lastCall < 1000) {
+    res.status(429).json({ error: "Rate limit is one request every second!" });
+    return false;
+  }
+  userDatabase
+    .prepare("update users set last_call = ? where identity_key = ?")
+    .run(currentTime, req.get("identity-key"));
+  return true;
+}
+
+/**
+ * Validate incoming calls from end users to the API.
+ * @param {express.Request} req - Expects headers "identity-key" and "secret-key" i.e. the API keys.
+ * @param {express.Response} res - Used to send back error code and relevant message if sanitization failed.
+ * @param {express.NextFunction} next - Used to proceed to the next middleware if successful.
+ */
+async function validateUserRequest(req, res, next) {
+  const cleanRequest = sanitizeRequest(req, res);
+  const authenticRequest = await authenticateRequest(req, res);
+  const rateLimitedRequest = isRateLimited(req, res);
+  if (cleanRequest && authenticRequest && rateLimitedRequest) {
+    next();
   }
 }
 
