@@ -3,7 +3,7 @@
 <html lang="en-US">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="canonical" href="https://residentapi.com" />
     <meta
@@ -61,8 +61,7 @@
               keys. One be your <strong>identity key</strong>, the other be your
               <strong>secret key</strong>. As the names suggest, the former
               identifies you to the API (like a username), while the latter
-              authenticates and authorizes you (like a password). Write 'em
-              down, because there's <strong>no resettin'</strong>!
+              authenticates and authorizes you (like a password).
             </p>
             <p>
               Callin' this here API means including the keys as
@@ -122,7 +121,7 @@
               After making a request, you'll receive a <code>200</code> status
               code and JSON with 4 keys: <code>quote</code>,
               <code>author</code>, <code>context</code>, and
-              <code>source</code>:
+              <code>source</code>. For example:
             </p>
             <pre><code>{
   "quote": "Go jump on a dildo, boss!",
@@ -143,6 +142,20 @@
             <p>
               Always check that the status code is <code>200</code> before
               proceeding your with program logic!
+            </p>
+          </section>
+          <section>
+            <h3 class="fs-4">Limitations</h3>
+            <p>
+              The only limitation to be aware of, stranger, is that after making
+              an API call and receiving a response, you must
+              <strong>wait at least one second</strong> before making another
+              call.
+            </p>
+            <p>
+              If you don't, you'll be slapped with a nasty
+              <code>429</code> status code. Respect the rules of the road,
+              stranger!
             </p>
           </section>
         </section>
