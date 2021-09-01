@@ -32,12 +32,12 @@ for (const row of quotesTable) {
 
 // Second, we initialize the user database.
 // This is used to store user information, which is dynamically added during runtime.
-const userDatabase = sqlite("./dynamic.db");
+const userDatabase = sqlite("./users.db");
 userDatabase.pragma("journal_mode = WAL");
 userDatabase
   .prepare(
     "create table if not exists users " +
-      "(id integer primary key, name text, email text, identity_key text, secret_key_hash text)"
+      "(id integer primary key, name text, email text, identity_key text, secret_key_hash text, last_call integer)"
   )
   .run();
 
