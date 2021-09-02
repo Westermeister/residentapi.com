@@ -118,9 +118,9 @@ async function registerUser(req, res) {
       const [secretKey, secretKeyHash] = await generateSecretKeyPair();
       userDatabase
         .prepare(
-          "insert into users (name, email, identity_key, secret_key_hash) values (?, ?, ?, ?)"
+          "insert into users (name, email, identity_key, secret_key_hash, last_call) values (?, ?, ?, ?, ?)"
         )
-        .run(name, email, identityKey, secretKeyHash);
+        .run(name, email, identityKey, secretKeyHash, 0);
       res.status(201).json({ identityKey: identityKey, secretKey: secretKey });
     }
   }
