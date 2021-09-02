@@ -17,3 +17,4 @@ app.use("/quotes", quotes);
 app.use("/register", register);
 
 app.listen(process.env.PORT, "localhost");
+console.log(`Listening on http://localhost:${process.env.PORT}`);
