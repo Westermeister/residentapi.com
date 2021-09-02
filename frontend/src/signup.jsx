@@ -20,10 +20,14 @@ const PropTypes = window.PropTypes;
 function SignUpForm(props) {
   const [reason, setReason] = React.useState("");
   const [email, setEmail] = React.useState("");
-
   const [error, setError] = React.useState(false);
 
-  const handleSubmit = () => {
+  /**
+   * Submit the form.
+   * @param {React.FormEvent<HTMLFormElement>} event - Form submission event.
+   */
+  const handleSubmit = (event) => {
+    event.preventDefault();
     const formData = {
       name: props.name,
       reason: reason,
@@ -38,7 +42,7 @@ function SignUpForm(props) {
     })
       .then((response) => {
         if (response.status === 400) {
-          setError(true);
+          throw new Error();
         }
         return response.json();
       })
@@ -46,11 +50,12 @@ function SignUpForm(props) {
         props.onIdentityKeyChange(response.identityKey);
         props.onSecretKeyChange(response.secretKey);
         props.onPhaseChange("output");
-      });
+      })
+      .catch(() => setError(true));
   };
 
   return (
-    <form>
+    <form onSubmit={handleSubmit}>
       <div className="mb-3 row d-flex justify-content-center">
         <div className="col col-md-9">
           <label htmlFor="name" className="form-label">
@@ -99,17 +104,19 @@ function SignUpForm(props) {
       </div>
       <div className="mb-3 row d-flex justify-content-center">
         <div className="col col-md-9">
-          <button
-            type="submit"
-            className="btn btn-primary"
-            onClick={handleSubmit}
-          >
+          <button type="submit" className="btn btn-primary">
             Sign up
           </button>
         </div>
       </div>
       {error && (
-        <p className="text-danger">Please make sure to fill out both fields.</p>
+        <div className="mb-3 row d-flex justify-content-center">
+          <div className="col col-md-9">
+            <p className="text-danger">
+              Please make sure to fill out both fields.
+            </p>
+          </div>
+        </div>
       )}
     </form>
   );
@@ -142,7 +149,7 @@ function SignUpResult(props) {
           down somewhere you {"won't"} forget!
         </p>
         <p>
-          Then, <a href="/#docs">check out the documentation</a> to see what you
+          Then, check out the <a href="/#docs">documentation</a> to see what you
           can do with these bad boys!
         </p>
       </div>
