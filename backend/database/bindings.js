@@ -10,17 +10,17 @@ const sqlite = require("better-sqlite3");
 
 // First, we build the static database.
 // This database holds the built database from the CSV files in the tables/ directory.
-if (fs.existsSync("./static.db")) {
-  fs.unlinkSync("./static.db");
+if (fs.existsSync("./database/static.db")) {
+  fs.unlinkSync("./database/static.db");
 }
-const staticDatabase = sqlite("./static.db");
+const staticDatabase = sqlite("./database/static.db");
 staticDatabase.pragma("journal_mode = WAL");
 staticDatabase
   .prepare(
     "create table quotes (id integer primary key, quote text, author text, context text, source text)"
   )
   .run();
-let quotesTable = fs.readFileSync("../tables/quotes.csv", "utf8");
+let quotesTable = fs.readFileSync("./tables/quotes.csv", "utf8");
 quotesTable = parse(quotesTable, { columns: true, skip_empty_lines: true });
 for (const row of quotesTable) {
   staticDatabase
@@ -32,7 +32,7 @@ for (const row of quotesTable) {
 
 // Second, we initialize the user database.
 // This is used to store user information, which is dynamically added during runtime.
-const userDatabase = sqlite("./users.db");
+const userDatabase = sqlite("./database/users.db");
 userDatabase.pragma("journal_mode = WAL");
 userDatabase
   .prepare(
