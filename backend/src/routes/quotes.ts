@@ -3,18 +3,18 @@
  * Copyright (c) 2021 Westermeister. All rights reserved.
  */
 
-const express = require("express");
+import express from "express";
 
-const validateUserRequest = require("../middleware/validateUserRequest");
-const { staticDatabase } = require("../database/bindings");
+import { validateUserRequest } from "../middleware/validateUserRequest";
+import { staticDatabase } from "../database/bindings";
 
 /**
  * Selects author based off of character code.
- * @param {string} charCode - The given character code in the query parameters.
- * @returns {string} - The selected author.
- * @throws {Error} - If the character code is invalid.
+ * @param charCode - The given character code in the query parameters.
+ * @returns The selected author.
+ * @throws If the character code is invalid.
  */
-function selectAuthor(charCode) {
+function selectAuthor(charCode: string): string {
   switch (charCode) {
     case "ada-wong":
       return "Ada Wong";
@@ -47,11 +47,11 @@ function selectAuthor(charCode) {
 
 /**
  * Selects source based off of source code.
- * @param {string} srcCode - The given source code in the query parameters.
- * @returns {string} - The selected source.
- * @throws {Error} - If the source code is invalid.
+ * @param srcCode - The given source code in the query parameters.
+ * @returns The selected source.
+ * @throws If the source code is invalid.
  */
-function selectSource(srcCode) {
+function selectSource(srcCode: string): string {
   switch (srcCode) {
     case "resident-evil-2":
       return "Resident Evil 2";
@@ -80,13 +80,16 @@ function selectSource(srcCode) {
 
 /**
  * Handle incoming requests.
- * @param {express.Request} req - Can have optional query parameters "character" and "source".
- * @param {express.Response} res - Used to send back either the quote object or an error message.
+ * @param req - Can have optional query parameters "character" and "source".
+ * @param res - Used to send back either the quote object or an error message.
  */
-function serveQuote(req, res) {
+function serveQuote(req: express.Request, res: express.Response): void {
   try {
     let quote;
-    if (req.query.character !== undefined && req.query.source !== undefined) {
+    if (
+      typeof req.query.character === "string" &&
+      typeof req.query.source === "string"
+    ) {
       const author = selectAuthor(req.query.character);
       const source = selectSource(req.query.source);
       quote = staticDatabase
@@ -94,14 +97,14 @@ function serveQuote(req, res) {
           "select * from quotes where author = ? and source = ? order by random() limit 1"
         )
         .get(author, source);
-    } else if (req.query.character !== undefined) {
+    } else if (typeof req.query.character === "string") {
       const author = selectAuthor(req.query.character);
       quote = staticDatabase
         .prepare(
           "select * from quotes where author = ? order by random() limit 1"
         )
         .get(author);
-    } else if (req.query.source !== undefined) {
+    } else if (typeof req.query.source === "string") {
       const source = selectSource(req.query.source);
       quote = staticDatabase
         .prepare(
@@ -115,12 +118,12 @@ function serveQuote(req, res) {
     }
     res.status(200).json(quote);
   } catch (e) {
-    res.status(400).json({ error: e.message });
+    res.status(400).json({ error: (e as Error).message });
   }
 }
 
-const router = express.Router();
-router.use(validateUserRequest);
-router.get("/", serveQuote);
+const quotesRouter = express.Router();
+quotesRouter.use(validateUserRequest);
+quotesRouter.get("/", serveQuote);
 
-module.exports = router;
+export { quotesRouter };

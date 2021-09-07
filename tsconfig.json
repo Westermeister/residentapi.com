@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "outDir": "./backend/dist",
+    "strict": true,
+    "module": "CommonJS",
+    "target": "ES2017",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "exactOptionalPropertyTypes": true
+  },
+  "include": ["backend/src/**/*.ts"]
+}

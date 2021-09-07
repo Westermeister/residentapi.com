@@ -3,25 +3,31 @@
  * Copyright (c) 2021 Westermeister. All rights reserved.
  */
 
-const fs = require("fs");
+import fs from "fs";
 
-const parse = require("csv-parse/lib/sync");
-const sqlite = require("better-sqlite3");
+import parse from "csv-parse/lib/sync";
+import sqlite from "better-sqlite3";
 
 // First, we build the static database.
 // This database holds the built database from the CSV files in the tables/ directory.
-if (fs.existsSync("./database/static.db")) {
-  fs.unlinkSync("./database/static.db");
+if (fs.existsSync("./backend/dist/database/static.db")) {
+  fs.unlinkSync("./backend/dist/database/static.db");
 }
-const staticDatabase = sqlite("./database/static.db");
+const staticDatabase = sqlite("./backend/dist/database/static.db");
 staticDatabase.pragma("journal_mode = WAL");
 staticDatabase
   .prepare(
     "create table quotes (id integer primary key, quote text, author text, context text, source text)"
   )
   .run();
-let quotesTable = fs.readFileSync("./tables/quotes.csv", "utf8");
-quotesTable = parse(quotesTable, { columns: true, skip_empty_lines: true });
+const quotesTableCsv = fs.readFileSync(
+  "./backend/dist/tables/quotes.csv",
+  "utf8"
+);
+const quotesTable = parse(quotesTableCsv, {
+  columns: true,
+  skip_empty_lines: true,
+});
 for (const row of quotesTable) {
   staticDatabase
     .prepare(
@@ -32,7 +38,7 @@ for (const row of quotesTable) {
 
 // Second, we initialize the user database.
 // This is used to store user information, which is dynamically added during runtime.
-const userDatabase = sqlite("./database/users.db");
+const userDatabase = sqlite("./backend/dist/database/users.db");
 userDatabase.pragma("journal_mode = WAL");
 userDatabase
   .prepare(
@@ -41,7 +47,4 @@ userDatabase
   )
   .run();
 
-module.exports = {
-  staticDatabase,
-  userDatabase,
-};
+export { staticDatabase, userDatabase };

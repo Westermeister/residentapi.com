@@ -3,20 +3,20 @@
  * Copyright (c) 2021 Westermeister. All rights reserved.
  */
 
-const crypto = require("crypto");
+import crypto from "crypto";
 
-const argon2 = require("argon2");
-const express = require("express");
+import argon2 from "argon2";
+import express from "express";
 
-const { userDatabase } = require("../database/bindings");
+import { userDatabase } from "../database/bindings";
 
 /**
  * Verify presence of required inputs and their required datatypes.
- * @param {express.Request} req - Should have "name" and "email" body params.
- * @param {express.Response} res - Used to send an error message if the inputs aren't valid.
- * @returns {boolean} True if valid, false otherwise.
+ * @param req - Should have "name" and "email" body params.
+ * @param res - Used to send an error message if the inputs aren't valid.
+ * @returns True if valid, false otherwise.
  */
-function validateInputs(req, res) {
+function validateInputs(req: express.Request, res: express.Response): boolean {
   if (
     typeof req.body.name !== "string" ||
     typeof req.body.reason !== "string" ||
@@ -34,11 +34,11 @@ function validateInputs(req, res) {
 
 /**
  * Filters out requests that have filled the honeypot field.
- * @param {express.Request} req - Should have an "reason" body param that actually serves as the honeypot.
- * @param {express.Response} res - Used to send a fake success response in case of spam.
- * @returns {boolean} True if request is spam, false otherwise.
+ * @param req - Should have an "reason" body param that actually serves as the honeypot.
+ * @param res - Used to send a fake success response in case of spam.
+ * @returns True if request is spam, false otherwise.
  */
-function detectSpam(req, res) {
+function detectSpam(req: express.Request, res: express.Response): boolean {
   if (req.body.reason.length > 0) {
     res.status(200).json({ message: "Sign up successful" });
     return true;
@@ -48,19 +48,20 @@ function detectSpam(req, res) {
 
 /**
  * Cap the maximum length of the inputs to prevent abuse.
- * @param {express.Request} req - Should have "name" and "email" params in the POST body.
+ * @param req - Should have "name" and "email" params in the POST body.
+ * @returns The capped inputs.
  */
-function capInputs(req) {
+function capInputs(req: express.Request): string[] {
   return [req.body.name.substr(0, 1000), req.body.email.substr(0, 1000)];
 }
 
 /**
  * Ensure that the user's email isn't already in the database.
- * @param {string} email - The user's email address.
- * @param {express.Response} res - Used to send an error response in case of a duplicate.
- * @returns {boolean} True if email is unique, false otherwise.
+ * @param email - The user's email address.
+ * @param res - Used to send an error response in case of a duplicate.
+ * @returns True if email is unique, false otherwise.
  */
-function verifyUniqueEmail(email, res) {
+function verifyUniqueEmail(email: string, res: express.Response): boolean {
   const duplicateEmail = userDatabase
     .prepare("select count(1) from users where email = ? limit 1")
     .get(email)["count(1)"];
@@ -75,9 +76,9 @@ function verifyUniqueEmail(email, res) {
 
 /**
  * Generates unique identity key.
- * @returns {string} "identity-" + a unique, 64-char hex string.
+ * @returns "identity-" + a unique, 64-char hex string.
  */
-function generateIdentityKey() {
+function generateIdentityKey(): string {
   let identityKey = "identity-" + crypto.randomBytes(32).toString("hex");
   let numDuplicates = userDatabase
     .prepare("select count(1) from users where identity_key = ? limit 1")
@@ -93,9 +94,9 @@ function generateIdentityKey() {
 
 /**
  * Generates secret key and a salted hash.
- * @returns {list} First the raw secret key, then its salted hash via Argon2id.
+ * @returns First the raw secret key, then its salted hash via Argon2id.
  */
-async function generateSecretKeyPair() {
+async function generateSecretKeyPair(): Promise<string[]> {
   const secretKey = "secret-" + crypto.randomBytes(32).toString("hex");
   const secretKeyHash = await argon2.hash(secretKey, { type: argon2.argon2id });
   return [secretKey, secretKeyHash];
@@ -103,10 +104,13 @@ async function generateSecretKeyPair() {
 
 /**
  * Register a new user.
- * @param {express.Request} req - Should have "name", "email", and "reason" (honeypot) params in POST body.
- * @param {express.Response} res - Used to send back status codes, errors, and/or API keys.
+ * @param req - Should have "name", "email", and "reason" (honeypot) params in POST body.
+ * @param res - Used to send back status codes, errors, and/or API keys.
  */
-async function registerUser(req, res) {
+async function registerUser(
+  req: express.Request,
+  res: express.Response
+): Promise<void> {
   const validInputs = validateInputs(req, res);
   const isSpam = detectSpam(req, res);
   if (validInputs && !isSpam) {
@@ -126,8 +130,8 @@ async function registerUser(req, res) {
   }
 }
 
-const router = express.Router();
-router.use(express.json());
-router.post("/", registerUser);
+const registerRouter = express.Router();
+registerRouter.use(express.json());
+registerRouter.post("/", registerUser);
 
-module.exports = router;
+export { registerRouter };

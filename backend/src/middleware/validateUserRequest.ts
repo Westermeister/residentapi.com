@@ -3,17 +3,18 @@
  * Copyright (c) 2021 Westermeister. All rights reserved.
  */
 
-const argon2 = require("argon2");
+import * as argon2 from "argon2";
+import express from "express";
 
-const { userDatabase } = require("../database/bindings");
+import { userDatabase } from "../database/bindings";
 
 /**
  * Ensure the incoming request is syntactically valid.
- * @param {express.Request} req - Expects headers "identity-key" and "secret-key" i.e. the API keys.
- * @param {express.Response} res - Used to send back error code and relevant message if sanitization failed.
- * @returns {boolean} True if request is clean, otherwise false.
+ * @param req - Expects headers "identity-key" and "secret-key" i.e. the API keys.
+ * @param res - Used to send back error code and relevant message if sanitization failed.
+ * @returns True if request is clean, otherwise false.
  */
-function sanitizeRequest(req, res) {
+function sanitizeRequest(req: express.Request, res: express.Response): boolean {
   // Ensure headers exist.
   let identityHeader = req.get("identity-key");
   let secretHeader = req.get("secret-key");
@@ -70,11 +71,14 @@ function sanitizeRequest(req, res) {
 
 /**
  * Authenticate requests by checking the API keys against the database.
- * @param {express.Request} req - Expects headers "identity-key" and "secret-key" i.e. the API keys.
- * @param {express.Response} res - Used to send back error code and relevant message if authentication failed.
- * @returns {boolean} True if request is authentic, otherwise false.
+ * @param req - Expects headers "identity-key" and "secret-key" i.e. the API keys.
+ * @param res - Used to send back error code and relevant message if authentication failed.
+ * @returns True if request is authentic, otherwise false.
  */
-async function authenticateRequest(req, res) {
+async function authenticateRequest(
+  req: express.Request,
+  res: express.Response
+): Promise<boolean> {
   // First, verify that the user exists by checking for the identity key,
   const userExists = userDatabase
     .prepare("select count(1) from users where identity_key = ? limit 1")
@@ -89,7 +93,7 @@ async function authenticateRequest(req, res) {
     .prepare("select secret_key_hash from users where identity_key = ? limit 1")
     .get(req.get("identity-key")).secret_key_hash;
   try {
-    if (await argon2.verify(secretKeyHash, req.get("secret-key"))) {
+    if (await argon2.verify(secretKeyHash, req.get("secret-key")!)) {
       return true;
     } else {
       res.status(401).json({ error: "Secret key is invalid." });
@@ -106,11 +110,11 @@ async function authenticateRequest(req, res) {
 
 /**
  * Rate limit the incoming request, or just update the database with the new timestamp.
- * @param {express.Request} req - Should have an "identity-key" header; will be used to check last call.
- * @param {express.Response} res - Used to send back an error message if the request hasn't followed the rate limit.
- * @returns {boolean} True if request has followed the rate limit, false otherwise.
+ * @param req - Should have an "identity-key" header; will be used to check last call.
+ * @param res - Used to send back an error message if the request hasn't followed the rate limit.
+ * @returns True if request has followed the rate limit, false otherwise.
  */
-function isRateLimited(req, res) {
+function isRateLimited(req: express.Request, res: express.Response): boolean {
   const currentTime = Date.now();
   const lastCall = userDatabase
     .prepare("select last_call from users where identity_key = ? limit 1")
@@ -127,11 +131,15 @@ function isRateLimited(req, res) {
 
 /**
  * Validate incoming calls from end users to the API.
- * @param {express.Request} req - Expects headers "identity-key" and "secret-key" i.e. the API keys.
- * @param {express.Response} res - Used to send back error code and relevant message if sanitization failed.
- * @param {express.NextFunction} next - Used to proceed to the next middleware if successful.
+ * @param req - Expects headers "identity-key" and "secret-key" i.e. the API keys.
+ * @param res - Used to send back error code and relevant message if sanitization failed.
+ * @param next - Used to proceed to the next middleware if successful.
  */
-async function validateUserRequest(req, res, next) {
+async function validateUserRequest(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+): Promise<void> {
   const cleanRequest = sanitizeRequest(req, res);
   const authenticRequest = await authenticateRequest(req, res);
   const rateLimitedRequest = isRateLimited(req, res);
@@ -140,4 +148,4 @@ async function validateUserRequest(req, res, next) {
   }
 }
 
-module.exports = validateUserRequest;
+export { validateUserRequest };
