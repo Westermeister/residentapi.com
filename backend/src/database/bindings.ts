@@ -3,6 +3,9 @@
  * Copyright (c) 2021 Westermeister. All rights reserved.
  */
 
+import { config } from "dotenv";
+config({ path: "./.env" });
+
 import fs from "fs";
 
 import parse from "csv-parse/lib/sync";
@@ -38,7 +41,12 @@ for (const row of quotesTable) {
 
 // Second, we initialize the user database.
 // This is used to store user information, which is dynamically added during runtime.
-const userDatabase = sqlite("./backend/dist/database/users.db");
+let userDatabase: sqlite.Database;
+if (process.env.NODE_ENV === "development") {
+  userDatabase = sqlite("./backend/dist/database/users.test.db");
+} else {
+  userDatabase = sqlite("./backend/dist/database/users.db");
+}
 userDatabase.pragma("journal_mode = WAL");
 userDatabase
   .prepare(
