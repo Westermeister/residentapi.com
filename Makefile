@@ -15,7 +15,7 @@ content: dist
 
 .PHONY: eslint
 eslint: prettier
-	npx eslint "./frontend/src/**/*.tsx" "./backend/src/**/*.ts"
+	npx eslint "./frontend/src/**/*.jsx" "./backend/src/**/*.ts"
 
 .PHONY: prettier
 prettier:
