@@ -9,6 +9,19 @@ $white: #dee2e6;
 
 @import "../../node_modules/bootstrap/scss/bootstrap";
 
+body {
+  margin-bottom: 9rem;
+}
+
+a {
+  color: #fc3d50;
+}
+
+a:hover,
+a:active {
+  color: $primary;
+}
+
 #content-container {
   max-width: 960px;
   margin: 0 auto;
