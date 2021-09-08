@@ -16,8 +16,8 @@ import { userDatabase } from "../database/bindings";
  */
 function sanitizeRequest(req: express.Request, res: express.Response): boolean {
   // Ensure headers exist.
-  let identityHeader = req.get("identity-key");
-  let secretHeader = req.get("secret-key");
+  const identityHeader = req.get("identity-key");
+  const secretHeader = req.get("secret-key");
   if (identityHeader === undefined || secretHeader === undefined) {
     res
       .status(400)
