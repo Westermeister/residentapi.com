@@ -94,26 +94,28 @@ function serveQuote(req: express.Request, res: express.Response): void {
       const source = selectSource(req.query.source);
       quote = staticDatabase
         .prepare(
-          "select * from quotes where author = ? and source = ? order by random() limit 1"
+          "select quote, author, context, source from quotes where author = ? and source = ? order by random() limit 1"
         )
         .get(author, source);
     } else if (typeof req.query.character === "string") {
       const author = selectAuthor(req.query.character);
       quote = staticDatabase
         .prepare(
-          "select * from quotes where author = ? order by random() limit 1"
+          "select quote, author, context, source from quotes where author = ? order by random() limit 1"
         )
         .get(author);
     } else if (typeof req.query.source === "string") {
       const source = selectSource(req.query.source);
       quote = staticDatabase
         .prepare(
-          "select * from quotes where source = ? order by random() limit 1"
+          "select quote, author, context, source from quotes where source = ? order by random() limit 1"
         )
         .get(source);
     } else {
       quote = staticDatabase
-        .prepare("select * from quotes order by random() limit 1")
+        .prepare(
+          "select quote, author, context, source from quotes order by random() limit 1"
+        )
         .get();
     }
     res.status(200).json(quote);
