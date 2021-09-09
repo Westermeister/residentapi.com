@@ -1,6 +1,10 @@
 .PHONY: all
 all: content eslint prettier dist scripts styles
 
+.PHONY: check
+check:
+	npx jest --runInBand tests
+
 .PHONY: clean
 clean:
 	rm -rf ./frontend/dist
