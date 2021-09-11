@@ -1,3 +1,8 @@
+# 2021.09.11.1
+
+- Added warning prompt when executing `make clean`.
+  - The prompt warns that cleaning will result in the removal of the production database i.e. `users.db`.
+
 # 2021.09.11
 
 - Refactored how development servers are started.
