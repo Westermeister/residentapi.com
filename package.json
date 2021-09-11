@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "frontend": "npx http-server -s -e -p 8080 -P http://localhost:3000",
+    "frontend": "npx http-server ./frontend/dist -s -e -p 8080 -P http://localhost:3000",
     "backend": "node ./backend/dist/index.js"
   },
   "devDependencies": {
