@@ -7,6 +7,7 @@ check:
 
 .PHONY: clean
 clean:
+	@echo -n "WARNING: Cleaning will remove production database. Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
 	rm -rf ./frontend/dist
 	rm -rf ./backend/dist
 
