@@ -10,7 +10,7 @@ const sqlite = require("better-sqlite3");
 const API_ENDPOINT = "http://localhost:8080/register";
 
 // Test database for users.
-const userDatabase = sqlite("./backend/dist/database/users.test.db");
+const userDatabase = sqlite("./dist/backend/database/users.test.db");
 
 beforeAll(() => {
   // Make sure the test user database is empty.

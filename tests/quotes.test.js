@@ -11,7 +11,7 @@ const SIGNUP_API_ENDPOINT = "http://localhost:8080/register";
 const QUOTES_API_ENDPOINT = "http://localhost:8080/quotes";
 
 // Test database for users.
-const userDatabase = sqlite("./backend/dist/database/users.test.db");
+const userDatabase = sqlite("./dist/backend/database/users.test.db");
 
 let identityKey;
 let secretKey;

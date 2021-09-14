@@ -20,7 +20,7 @@ module.exports = {
   },
   plugins: ["react", "@typescript-eslint"],
   rules: { "@typescript-eslint/no-non-null-assertion": "off" },
-  ignorePatterns: ["/frontend/dist", "/backend/dist", "/tests"],
+  ignorePatterns: ["/frontend/dist", "/backend/dist", "/tests", "*.config.js"],
   settings: {
     react: {
       version: "17",

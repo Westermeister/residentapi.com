@@ -11,12 +11,14 @@ import fs from "fs";
 import parse from "csv-parse/lib/sync";
 import sqlite from "better-sqlite3";
 
+const BACKEND_DIST = "./dist/backend";
+
 // First, we build the static database.
 // This database holds the built database from the CSV files in the tables/ directory.
-if (fs.existsSync("./backend/dist/database/static.db")) {
-  fs.unlinkSync("./backend/dist/database/static.db");
+if (fs.existsSync(`${BACKEND_DIST}/database/static.db`)) {
+  fs.unlinkSync(`${BACKEND_DIST}/database/static.db`);
 }
-const staticDatabase = sqlite("./backend/dist/database/static.db");
+const staticDatabase = sqlite(`${BACKEND_DIST}/database/static.db`);
 staticDatabase.pragma("journal_mode = WAL");
 staticDatabase
   .prepare(
@@ -24,7 +26,7 @@ staticDatabase
   )
   .run();
 const quotesTableCsv = fs.readFileSync(
-  "./backend/dist/tables/quotes.csv",
+  `${BACKEND_DIST}/tables/quotes.csv`,
   "utf8"
 );
 const quotesTable = parse(quotesTableCsv, {
@@ -43,9 +45,9 @@ for (const row of quotesTable) {
 // This is used to store user information, which is dynamically added during runtime.
 let userDatabase: sqlite.Database;
 if (process.env.NODE_ENV === "development") {
-  userDatabase = sqlite("./backend/dist/database/users.test.db");
+  userDatabase = sqlite(`${BACKEND_DIST}/database/users.test.db`);
 } else {
-  userDatabase = sqlite("./backend/dist/database/users.db");
+  userDatabase = sqlite(`${BACKEND_DIST}/database/users.db`);
 }
 userDatabase.pragma("journal_mode = WAL");
 userDatabase

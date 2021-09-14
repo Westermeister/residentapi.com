@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./backend/dist",
+    "outDir": "./dist/backend",
     "strict": true,
     "module": "CommonJS",
     "target": "ES2017",
@@ -10,5 +10,5 @@
     "skipLibCheck": true,
     "exactOptionalPropertyTypes": true
   },
-  "include": ["backend/src/**/*.ts"]
+  "include": ["src/backend/**/*.ts"]
 }

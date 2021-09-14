@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "frontend": "npx http-server ./frontend/dist -s -e -p 8080 -P http://localhost:3000",
-    "backend": "node ./backend/dist/index.js"
+    "frontend": "npx http-server ./dist/frontend -s -e -p 8080 -P http://localhost:3000",
+    "backend": "node ./dist/backend/index.js"
   },
   "devDependencies": {
     "@fullhuman/postcss-purgecss": "4.0.3",

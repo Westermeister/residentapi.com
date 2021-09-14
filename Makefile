@@ -1,3 +1,9 @@
+# Common paths.
+FRONTEND_SRC=./src/frontend
+BACKEND_SRC=./src/backend
+FRONTEND_DIST=./dist/frontend
+BACKEND_DIST=./dist/backend
+
 .PHONY: all
 all: content eslint prettier dist scripts styles
 
@@ -8,36 +14,35 @@ check:
 .PHONY: clean
 clean:
 	@echo -n "WARNING: Cleaning will remove production database. Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
-	rm -rf ./frontend/dist
-	rm -rf ./backend/dist
+	rm -rf ./dist
 
 .PHONY: content
 content: dist
-	cp frontend/src/*.html frontend/dist
-	cp frontend/src/favicon.png frontend/dist
-	cp frontend/src/sitemap.xml frontend/dist
-	cp frontend/src/robots.txt frontend/dist
+	cp $(FRONTEND_SRC)/*.html $(FRONTEND_DIST)
+	cp $(FRONTEND_SRC)/favicon.png $(FRONTEND_DIST)
+	cp $(FRONTEND_SRC)/sitemap.xml $(FRONTEND_DIST)
+	cp $(FRONTEND_SRC)/robots.txt $(FRONTEND_DIST)
 
 .PHONY: eslint
 eslint: prettier
-	npx eslint "./frontend/src/**/*.jsx" "./backend/src/**/*.ts"
+	npx eslint "$(FRONTEND_SRC)/**/*.jsx" "$(BACKEND_SRC)/**/*.ts"
 
 .PHONY: prettier
 prettier:
-	npx prettier --write "./*.json" "./*.js" "./frontend/src" "./backend/src/**/*.ts"
+	npx prettier --write "./*.json" "./*.js" "$(FRONTEND_SRC)" "$(BACKEND_SRC)/**/*.ts"
 
 .PHONY: dist
 dist:
-	mkdir -p frontend/dist
-	mkdir -p backend/dist
+	mkdir -p $(FRONTEND_DIST)
+	mkdir -p $(BACKEND_DIST)
 
 .PHONY: scripts
 scripts: prettier dist
-	npx babel --presets react-app/prod -o frontend/dist/signup.js frontend/src/signup.jsx
+	npx babel --presets react-app/prod -o $(FRONTEND_DIST)/signup.js $(FRONTEND_SRC)/signup.jsx
 	npx tsc
-	cp -r ./backend/src/tables ./backend/dist
+	cp -r $(BACKEND_SRC)/tables $(BACKEND_DIST)
 
 .PHONY: styles
 styles: prettier dist
-	npx sass frontend/src/main.scss:frontend/dist/main.css --no-source-map --quiet
-	NODE_ENV=production npx postcss frontend/dist/main.css --replace
+	npx sass $(FRONTEND_SRC)/main.scss:$(FRONTEND_DIST)/main.css --no-source-map --quiet
+	NODE_ENV=production npx postcss $(FRONTEND_DIST)/main.css --replace
