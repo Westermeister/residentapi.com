@@ -1,3 +1,8 @@
+# 2021.09.14
+
+- Lift up `src` and `dist` directories above `frontend` and `backend` directories.
+  - e.g. `frontend/src` becomes `src/frontend`.
+
 # 2021.09.11.1
 
 - Added warning prompt when executing `make clean`.
