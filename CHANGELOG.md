@@ -1,3 +1,7 @@
+# 2021.09.26
+
+- Changed call-to-action button to use capital case i.e. changed from "Get started" to "Get Started".
+
 # 2021.09.14
 
 - Lift up `src` and `dist` directories above `frontend` and `backend` directories.
