@@ -29,7 +29,9 @@ function rateLimit(username: string): boolean {
 
 /**
  * Validate and authenticate incoming calls from end users to the API.
- * @param req - See exported function for format.
+ * @param req - Should have a header called "Authorization" which is for HTTP Basic authentication.
+ *              Should have value "Basic: some_base64_data" where the data is formatted for basic auth.
+ *              i.e. some_base64_data = base64encode("username:password")
  * @param res - Used to send back error code and relevant message if sanitization failed.
  * @param next - Used to proceed to the next middleware if successful.
  */
