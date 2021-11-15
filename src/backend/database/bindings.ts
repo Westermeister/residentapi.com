@@ -22,7 +22,7 @@ const staticDatabase = sqlite(`${BACKEND_DIST}/database/static.db`);
 staticDatabase.pragma("journal_mode = WAL");
 staticDatabase
   .prepare(
-    "create table quotes (id integer primary key, quote text, author text, context text, source text)"
+    "CREATE TABLE quotes (quote_id INTEGER PRIMARY KEY, quote TEXT, author TEXT, context TEXT, source TEXT)"
   )
   .run();
 const quotesTableCsv = fs.readFileSync(
@@ -36,7 +36,7 @@ const quotesTable = parse(quotesTableCsv, {
 for (const row of quotesTable) {
   staticDatabase
     .prepare(
-      "insert into quotes (quote, author, context, source) values (?, ?, ?, ?)"
+      "INSERT INTO quotes (quote, author, context, source) VALUES (?, ?, ?, ?)"
     )
     .run(row.quote, row.author, row.context, row.source);
 }
@@ -52,8 +52,8 @@ if (process.env.NODE_ENV === "development") {
 userDatabase.pragma("journal_mode = WAL");
 userDatabase
   .prepare(
-    "create table if not exists users " +
-      "(id integer primary key, name text, email text, identity_key text, secret_key_hash text, last_call integer)"
+    "CREATE TABLE IF NOT EXISTS users " +
+      "(user_id TEXT PRIMARY KEY NOT NULL, email TEXT, password_salted_hash TEXT, last_call INTEGER)"
   )
   .run();
 

@@ -9,129 +9,27 @@ import express from "express";
 import { userDatabase } from "../database/bindings";
 
 /**
- * Ensure the incoming request is syntactically valid.
- * @param req - Expects headers "identity-key" and "secret-key" i.e. the API keys.
- * @param res - Used to send back error code and relevant message if sanitization failed.
- * @returns True if request is clean, otherwise false.
- */
-function sanitizeRequest(req: express.Request, res: express.Response): boolean {
-  // Ensure headers exist.
-  const identityHeader = req.get("identity-key");
-  const secretHeader = req.get("secret-key");
-  if (identityHeader === undefined || secretHeader === undefined) {
-    res
-      .status(400)
-      .json({ error: "Missing header(s): IDENTITY-KEY and/or SECRET-KEY" });
-    return false;
-  }
-
-  // Ensure header prefixes exist.
-  if (
-    !identityHeader.startsWith("identity-") ||
-    !secretHeader.startsWith("secret-")
-  ) {
-    res
-      .status(400)
-      .json({ error: 'API keys must have "identity-" or "secret-" prefixes!' });
-    return false;
-  }
-
-  // Ensure hex portions exist.
-  const identityHeaderSplit = identityHeader.split("-");
-  const secretHeaderSplit = secretHeader.split("-");
-  if (
-    identityHeaderSplit.length !== 2 ||
-    identityHeaderSplit[1] === "" ||
-    secretHeaderSplit.length !== 2 ||
-    secretHeaderSplit[1] === ""
-  ) {
-    res.status(400).json({
-      error:
-        "The identity and/or secret key is missing its hexadecimal portion.",
-    });
-    return false;
-  }
-
-  // Ensure hex portions are valid.
-  const keyRegex = /[0-9a-f]{64}/;
-  if (
-    !keyRegex.test(identityHeaderSplit[1]) ||
-    !keyRegex.test(secretHeaderSplit[1])
-  ) {
-    res.status(400).json({
-      error:
-        "The hexadecimal part of the identity and/or secret key is invalid. Ensure it passes regex: /[0-9a-f]{64}/",
-    });
-    return false;
-  }
-
-  // If we got through all of that, the request is clean.
-  return true;
-}
-
-/**
- * Authenticate requests by checking the API keys against the database.
- * @param req - Expects headers "identity-key" and "secret-key" i.e. the API keys.
- * @param res - Used to send back error code and relevant message if authentication failed.
- * @returns True if request is authentic, otherwise false.
- */
-async function authenticateRequest(
-  req: express.Request,
-  res: express.Response
-): Promise<boolean> {
-  // First, verify that the user exists by checking for the identity key,
-  const userExists = userDatabase
-    .prepare("select count(1) from users where identity_key = ? limit 1")
-    .get(req.get("identity-key"))["count(1)"];
-  if (!userExists) {
-    res.status(401).json({ error: "Identity key is not recognized." });
-    return false;
-  }
-
-  // Second, ensure that the secret key matches.
-  const secretKeyHash = userDatabase
-    .prepare("select secret_key_hash from users where identity_key = ? limit 1")
-    .get(req.get("identity-key")).secret_key_hash;
-  try {
-    if (await argon2.verify(secretKeyHash, req.get("secret-key")!)) {
-      return true;
-    } else {
-      res.status(401).json({ error: "Secret key is invalid." });
-      return false;
-    }
-  } catch {
-    res.status(500).json({
-      error:
-        "Server encountered unknown error while trying to verify secret key. Please try again later.",
-    });
-    return false;
-  }
-}
-
-/**
  * Rate limit the incoming request, or just update the database with the new timestamp.
- * @param req - Should have an "identity-key" header; will be used to check last call.
- * @param res - Used to send back an error message if the request hasn't followed the rate limit.
+ * @param username - The user that's sending the request.
  * @returns True if request has followed the rate limit, false otherwise.
  */
-function isRateLimited(req: express.Request, res: express.Response): boolean {
+function rateLimit(username: string): boolean {
   const currentTime = Date.now();
   const lastCall = userDatabase
-    .prepare("select last_call from users where identity_key = ? limit 1")
-    .get(req.get("identity-key")).last_call;
+    .prepare("SELECT last_call FROM users WHERE user_id = ? LIMIT 1")
+    .get(username).last_call;
   if (currentTime - lastCall < 1000) {
-    res.status(429).json({ error: "Rate limit is one request every second!" });
     return false;
   }
   userDatabase
-    .prepare("update users set last_call = ? where identity_key = ?")
-    .run(currentTime, req.get("identity-key"));
+    .prepare("UPDATE users SET last_call = ? WHERE user_id = ?")
+    .run(currentTime, username);
   return true;
 }
 
 /**
- * Validate incoming calls from end users to the API.
- * @param req - Expects headers "identity-key" and "secret-key" i.e. the API keys.
+ * Validate and authenticate incoming calls from end users to the API.
+ * @param req - See exported function for format.
  * @param res - Used to send back error code and relevant message if sanitization failed.
  * @param next - Used to proceed to the next middleware if successful.
  */
@@ -140,12 +38,69 @@ async function validateUserRequest(
   res: express.Response,
   next: express.NextFunction
 ): Promise<void> {
-  const cleanRequest = sanitizeRequest(req, res);
-  const authenticRequest = await authenticateRequest(req, res);
-  const rateLimitedRequest = isRateLimited(req, res);
-  if (cleanRequest && authenticRequest && rateLimitedRequest) {
-    next();
+  // Do we even have the header in the first place?
+  const header = req.get("authorization");
+  if (header === undefined) {
+    res.status(400).json({ error: "Missing header: Authorization" });
+    return;
   }
+
+  // Ensure the header is formatted correctly.
+  const headerFormat = /^Basic: [a-zA-Z0-9+/=]+$/;
+  if (!headerFormat.test(header)) {
+    res.status(400).json({
+      error:
+        'Malformed header: Authorization. Must be: "Basic: base64_stuff_here"',
+    });
+    return;
+  }
+
+  // Ensure the credentials are formatted correctly.
+  const data = header.split(" ")[1];
+  const credentials = Buffer.from(data, "base64").toString("ascii");
+  const credentialsFormat = /^[a-zA-Z0-9_]{1,20}:[a-zA-Z0-9]{8,128}$/;
+  if (!credentialsFormat.test(credentials)) {
+    res.status(400).json({
+      error:
+        "Malformed header: Authorization. Decoded base64 value is not valid.",
+    });
+    return;
+  }
+
+  // Now try to authenticate the request.
+  const [username, password] = credentials.split(":");
+  const userExists = userDatabase
+    .prepare("SELECT COUNT(1) as exists_ FROM users WHERE user_id = ? LIMIT 1")
+    .get(username).exists_;
+  if (!userExists) {
+    res.status(401).json({ error: `Username does not exist: ${username}` });
+    return;
+  }
+  const passwordSaltedHash = userDatabase
+    .prepare("SELECT password_salted_hash FROM users WHERE user_id = ? LIMIT 1")
+    .get(username).password_salted_hash;
+  try {
+    const correctPassword = await argon2.verify(passwordSaltedHash, password);
+    if (!correctPassword) {
+      res.status(401).json({ error: "Password is incorrect." });
+      return;
+    }
+  } catch {
+    res.status(500).json({
+      error:
+        "Server encountered unknown error while verifying password. If this issue persists, please contact support: support@residentapi.com",
+    });
+    return;
+  }
+
+  // Finally, ensure the rate limit was respected.
+  if (!rateLimit(username)) {
+    res.status(429).json({ error: "Exceeded 1 second rate limit." });
+    return;
+  }
+
+  // If we got past all of that, we're good.
+  next();
 }
 
 export { validateUserRequest };

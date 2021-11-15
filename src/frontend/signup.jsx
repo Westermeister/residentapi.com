@@ -10,16 +10,14 @@ const PropTypes = window.PropTypes;
 /**
  * Render the sign up form.
  * @param {Object} props - JSX properties.
- * @param {string} props.name - The name of the user.
- * @param {string} props.onNameChange - Used to set the name of the user.
- * @param {string} props.onIdentityKeyChange - Used to set the identity key based off of the API response.
- * @param {string} props.onSecretKeyChange - Used to set the secret key based off of the API response.
+ * @param {string} props.username - The username of the user.
+ * @param {string} props.onUsernameChange - Used to set the username of the user.
  * @param {string} props.onPhaseChange - Used to change phase from input (i.e. form) to output (i.e. display result).
  * @returns {JSX.Element} The form component to be rendered.
  */
 function SignUpForm(props) {
-  const [reason, setReason] = React.useState("");
   const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState(false);
 
   /**
@@ -29,9 +27,9 @@ function SignUpForm(props) {
   const handleSubmit = (event) => {
     event.preventDefault();
     const formData = {
-      name: props.name,
-      reason: reason,
+      username: props.username,
       email: email,
+      password: password,
     };
     fetch("/register", {
       method: "POST",
@@ -39,19 +37,14 @@ function SignUpForm(props) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(formData),
-    })
-      .then((response) => {
-        if (response.status === 400) {
-          throw new Error();
-        }
-        return response.json();
-      })
-      .then((response) => {
-        props.onIdentityKeyChange(response.identityKey);
-        props.onSecretKeyChange(response.secretKey);
+    }).then((response) => {
+      // This only happens if we have a duplicate username.
+      if (response.status === 409) {
+        setError(true);
+      } else {
         props.onPhaseChange("output");
-      })
-      .catch(() => setError(true));
+      }
+    });
   };
 
   return (
@@ -59,47 +52,67 @@ function SignUpForm(props) {
       <div className="mb-3 row d-flex justify-content-center">
         <div className="col col-md-9">
           <label htmlFor="name" className="form-label">
-            Name
+            Username *
           </label>
           <input
-            value={props.name}
-            onChange={(e) => props.onNameChange(e.target.value)}
-            id="name"
+            required
+            value={props.username}
+            onChange={(e) => props.onUsernameChange(e.target.value)}
+            id="username"
             className="form-control bg-dark border-secondary text-white"
             type="text"
-            placeholder="Enter your name"
+            placeholder="Enter a username"
+            pattern="^[a-zA-Z0-9_]{1,20}$"
+            minLength="1"
+            maxLength="20"
+            aria-describedby="usernameHelp"
           />
-        </div>
-      </div>
-      <div className="mb-3 row d-flex justify-content-center" id="reason">
-        <div className="col col-md-9">
-          <label htmlFor="reason" className="form-label">
-            Reason
-          </label>
-          <input
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            id="reason"
-            className="form-control bg-dark border-secondary text-white"
-            type="text"
-            placeholder="Enter your reason for wanting to use this service"
-            tabIndex="-2"
-          />
+          <div id="usernameHelp" className="form-text">
+            Can contain letters, numbers, and underscores. Max 20 characters.
+          </div>
         </div>
       </div>
       <div className="mb-3 row d-flex justify-content-center">
         <div className="col col-md-9">
           <label htmlFor="email" className="form-label">
-            Email
+            Email *
           </label>
           <input
+            required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             id="email"
             className="form-control bg-dark border-secondary text-white"
             type="email"
             placeholder="Enter your email"
+            aria-describedby="emailHelp"
           />
+          <div id="emailHelp" className="form-text">
+            So that we can contact you in case something goes wrong.
+          </div>
+        </div>
+      </div>
+      <div className="mb-3 row d-flex justify-content-center">
+        <div className="col col-md-9">
+          <label htmlFor="password" className="form-label">
+            Password *
+          </label>
+          <input
+            required
+            type="password"
+            pattern="^[a-zA-Z0-9]{8,128}$"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            id="password"
+            className="form-control bg-dark border-secondary text-white"
+            placeholder="Enter a password"
+            minLength="8"
+            maxLength="128"
+            aria-describedby="passwordHelp"
+          />
+          <div id="passwordHelp" className="form-text">
+            Must be between 8 and 128 characters long. Letters and numbers only.
+          </div>
         </div>
       </div>
       <div className="mb-3 row d-flex justify-content-center">
@@ -112,9 +125,7 @@ function SignUpForm(props) {
       {error && (
         <div className="mb-3 row d-flex justify-content-center">
           <div className="col col-md-9">
-            <p className="text-danger">
-              Please make sure to fill out both fields.
-            </p>
+            <p className="text-danger">Username already exists.</p>
           </div>
         </div>
       )}
@@ -123,60 +134,31 @@ function SignUpForm(props) {
 }
 
 SignUpForm.propTypes = {
-  name: PropTypes.string.isRequired,
-  onNameChange: PropTypes.func.isRequired,
-  onIdentityKeyChange: PropTypes.func.isRequired,
-  onSecretKeyChange: PropTypes.func.isRequired,
+  username: PropTypes.string.isRequired,
+  onUsernameChange: PropTypes.func.isRequired,
   onPhaseChange: PropTypes.func.isRequired,
 };
 
 /**
  * Render result of user registration, including API keys.
  * @param {Object} props - JSX properties.
- * @param {string} props.name - User's name.
- * @param {string} props.identityKey - Identity key response from API.
- * @param {string} props.secretKey - Secret key response from API.
+ * @param {string} props.username - The user's username.
  * @returns {JSX.Element} The HTML to be rendered.
  */
 function SignUpResult(props) {
   return (
-    <React.Fragment>
-      <div className="mb-4">
-        <p>Thanks for signing up, {props.name}!</p>
-        <p>
-          To get started, copy your API keys below.{" "}
-          <strong>You cannot reset them</strong>, so make sure to write them
-          down somewhere you {"won't"} forget!
-        </p>
-        <p>
-          Then, check out the <a href="/#docs">documentation</a> to see what you
-          can do with these bad boys!
-        </p>
-      </div>
-      <div className="mb-2">
-        <p className="fw-bold text-decoration-underline mb-1">
-          Your identity key
-        </p>
-        <div>
-          <code>{props.identityKey}</code>
-        </div>
-      </div>
-      <div>
-        <p className="fw-bold text-decoration-underline mb-1">
-          Your secret key
-        </p>
-        <div>
-          <code>{props.secretKey}</code>
-        </div>
-      </div>
-    </React.Fragment>
+    <div className="mb-4">
+      <p>Thanks for signing up, {props.username}!</p>
+      <p>
+        To get started, check out the <a href="/#docs">documentation</a>. Have
+        fun!
+      </p>
+    </div>
   );
 }
 
 SignUpResult.propTypes = {
-  name: PropTypes.string.isRequired,
-  identityKey: PropTypes.string.isRequired,
-  secretKey: PropTypes.string.isRequired,
+  username: PropTypes.string.isRequired,
 };
 
 /**
@@ -184,28 +166,18 @@ SignUpResult.propTypes = {
  * @returns {JSX.Element} The rendered app.
  */
 function App() {
-  const [name, setName] = React.useState("");
-  const [identityKey, setIdentityKey] = React.useState("");
-  const [secretKey, setSecretKey] = React.useState("");
+  const [username, setUsername] = React.useState("");
   const [phase, setPhase] = React.useState("input");
   if (phase === "input") {
     return (
       <SignUpForm
-        name={name}
-        onNameChange={(name) => setName(name)}
-        onIdentityKeyChange={(key) => setIdentityKey(key)}
-        onSecretKeyChange={(key) => setSecretKey(key)}
+        username={username}
+        onUsernameChange={(username) => setUsername(username)}
         onPhaseChange={(phase) => setPhase(phase)}
       />
     );
   } else {
-    return (
-      <SignUpResult
-        name={name}
-        identityKey={identityKey}
-        secretKey={secretKey}
-      />
-    );
+    return <SignUpResult username={username} />;
   }
 }
 

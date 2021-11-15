@@ -13,17 +13,20 @@ const QUOTES_API_ENDPOINT = "http://localhost:8080/quotes";
 // Test database for users.
 const userDatabase = sqlite("./dist/backend/database/users.test.db");
 
-let identityKey;
-let secretKey;
+// Constant credentials.
+const USERNAME = "lkennedy";
+const PASSWORD = "marryMeAda";
+const CREDENTIALS = Buffer.from(`${USERNAME}:${PASSWORD}`, "ascii").toString("base64");
+const HEADER = `Basic: ${CREDENTIALS}`;
 
 beforeAll(async () => {
   // Make sure we clear the test database from any previous test runs.
-  userDatabase.prepare("delete from users").run();
+  userDatabase.prepare("DELETE FROM users").run();
   // Add the new user.
   const formData = {
-    name: "Leon Kennedy",
-    reason: "",
+    username: USERNAME,
     email: "lkennedy@rpd.org",
+    password: PASSWORD
   };
   const response = await fetch(SIGNUP_API_ENDPOINT, {
     method: "post",
@@ -31,26 +34,22 @@ beforeAll(async () => {
     headers: { "Content-Type": "application/json" },
   });
   expect(response.status).toBe(201);
-  // Get the identity and secret keys.
-  const data = await response.json();
-  identityKey = data.identityKey;
-  secretKey = data.secretKey;
 });
 
 afterAll(() => {
   // Clear the test user database from data added during these tests.
-  userDatabase.prepare("delete from users").run();
+  userDatabase.prepare("DELETE FROM users").run();
 });
 
 test("Request two random quotes in rapid succession", async () => {
   let response = await fetch(QUOTES_API_ENDPOINT, {
     method: "get",
-    headers: { "Identity-Key": identityKey, "Secret-Key": secretKey },
+    headers: { "Authorization": HEADER }
   });
   expect(response.status).toBe(200);
   response = await fetch(QUOTES_API_ENDPOINT, {
     method: "get",
-    headers: { "Identity-Key": identityKey, "Secret-Key": secretKey },
+    headers: { "Authorization": HEADER }
   });
   expect(response.status).toBe(429);
 });

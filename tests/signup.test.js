@@ -14,75 +14,19 @@ const userDatabase = sqlite("./dist/backend/database/users.test.db");
 
 beforeAll(() => {
   // Make sure the test user database is empty.
-  userDatabase.prepare("delete from users").run();
+  userDatabase.prepare("DELETE FROM users").run();
 });
 
 afterAll(() => {
   // Clear the test user database from data added during these tests.
-  userDatabase.prepare("delete from users").run();
+  userDatabase.prepare("DELETE FROM users").run();
 });
 
-test("Sign up without filling out any fields", async () => {
+test("Sign up normally", async () => {
   const formData = {
-    name: "",
-    reason: "",
-    email: "",
-  };
-  const response = await fetch(API_ENDPOINT, {
-    method: "post",
-    body: JSON.stringify(formData),
-    headers: { "Content-Type": "application/json" },
-  });
-  expect(response.status).toBe(400);
-});
-
-test("Sign up but only fill out name", async () => {
-  const formData = {
-    name: "Leon Kennedy",
-    reason: "",
-    email: "",
-  };
-  const response = await fetch(API_ENDPOINT, {
-    method: "post",
-    body: JSON.stringify(formData),
-    headers: { "Content-Type": "application/json" },
-  });
-  expect(response.status).toBe(400);
-});
-
-test("Sign up but only fill out email", async () => {
-  const formData = {
-    name: "",
-    reason: "",
+    username: "lkennedy",
     email: "lkennedy@rpd.org",
-  };
-  const response = await fetch(API_ENDPOINT, {
-    method: "post",
-    body: JSON.stringify(formData),
-    headers: { "Content-Type": "application/json" },
-  });
-  expect(response.status).toBe(400);
-});
-
-test("Sign up but actually it's a bot", async () => {
-  const formData = {
-    name: "qwertyuiop",
-    reason: "qwertyuiop",
-    email: "qwertyuiop@qwertyuiop",
-  };
-  const response = await fetch(API_ENDPOINT, {
-    method: "post",
-    body: JSON.stringify(formData),
-    headers: { "Content-Type": "application/json" },
-  });
-  expect(response.status).toBe(200);
-});
-
-test("Sign up properly", async () => {
-  const formData = {
-    name: "Leon Kennedy",
-    reason: "",
-    email: "lkennedy@rpd.org",
+    password: "marryMeAda"
   };
   const response = await fetch(API_ENDPOINT, {
     method: "post",

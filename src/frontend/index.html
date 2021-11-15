@@ -62,27 +62,32 @@
         <section>
           <h2 id="docs" class="mb-3">Documentation</h2>
           <section>
-            <h3 class="fs-4">API Key Headers</h3>
+            <h3 class="fs-4">Authorization Header</h3>
             <p>
-              Listen here, stranger! After signing up you'll get a pair of API
-              keys. One be your <strong>identity key</strong>, the other be your
-              <strong>secret key</strong>. As the names suggest, the former
-              identifies you to the API (like a username), while the latter
-              authenticates and authorizes you (like a password).
+              Listen here, stranger! During your registration, you're required
+              to specify both a <strong>username</strong> and a
+              <strong>password</strong>. As with any website, the former
+              identifies you, while the latter authenticates you!
             </p>
             <p>
-              Callin' this here API means including the keys as
-              <strong>request headers</strong>, specifically
-              <code>IDENTITY-KEY</code> and <code>SECRET-KEY</code>. Got it,
-              stranger?
+              Callin' this here API involves a simple scheme called
+              <a
+                href="https://en.wikipedia.org/wiki/Basic_access_authentication"
+                >Basic Authentication</a
+              >. All you gotta do is take your username and password, then smush
+              them together with a colon in the middle e.g.
+              <code>username:password</code>. Then, encode that in
+              <a href="https://en.wikipedia.org/wiki/Base64">Base64</a> and
+              include the result as an <code>Authorization</code> header:
             </p>
+            <pre><code>Authorization: Basic your_base64_here</code></pre>
+            <p>Easy as pie, ain't it, stranger?</p>
           </section>
           <section>
             <h3 class="fs-4">Available Endpoints</h3>
-            <p>All requests should be formatted as follows:</p>
+            <p>All requests should be formatted like so:</p>
             <pre><code>GET https://residentapi.com/quotes[?character=optional-code][?source=optional-code]
-  IDENTITY-KEY: [your identity key]
-  SECRET-KEY: [your secret key]</code></pre>
+  Authorization: Basic your_base64_here</code></pre>
             <p>
               As you can see stranger, you can optionally include a
               <strong>character code</strong> to get a quote from a specific
@@ -119,6 +124,7 @@
                 <li><code>resident-evil-revelations</code></li>
                 <li><code>resident-evil-revelations-2</code></li>
                 <li><code>resident-evil-village</code></li>
+                <li><code>resident-evil-damnation</code></li>
               </ul>
             </section>
           </section>
