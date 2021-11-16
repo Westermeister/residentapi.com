@@ -17,7 +17,7 @@ const userDatabase = sqlite("./dist/backend/database/users.test.db");
 const USERNAME = "lkennedy";
 const PASSWORD = "marryMeAda";
 const CREDENTIALS = Buffer.from(`${USERNAME}:${PASSWORD}`, "ascii").toString("base64");
-const HEADER = `Basic: ${CREDENTIALS}`;
+const HEADER = `Basic ${CREDENTIALS}`;
 
 beforeAll(async () => {
   // Make sure we clear the test database from any previous test runs.
