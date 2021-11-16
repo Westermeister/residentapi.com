@@ -41,7 +41,7 @@ function SignUpForm(props) {
       // This only happens if we have a duplicate username.
       if (response.status === 409) {
         setError(true);
-      } else {
+      } else if (response.status === 201) {
         props.onPhaseChange("output");
       }
     });
@@ -51,8 +51,13 @@ function SignUpForm(props) {
     <form onSubmit={handleSubmit}>
       <div className="mb-3 row d-flex justify-content-center">
         <div className="col col-md-9">
+          <span className="text-danger">*</span> = required
+        </div>
+      </div>
+      <div className="mb-3 row d-flex justify-content-center">
+        <div className="col col-md-9">
           <label htmlFor="name" className="form-label">
-            Username *
+            Username <span className="text-danger">*</span>
           </label>
           <input
             required
@@ -67,7 +72,11 @@ function SignUpForm(props) {
             maxLength="20"
             aria-describedby="usernameHelp"
           />
-          <div id="usernameHelp" className="form-text">
+          <div
+            id="usernameHelp"
+            className="form-text"
+            style={{ color: "rgb(150,150,160)" }}
+          >
             Can contain letters, numbers, and underscores. Max 20 characters.
           </div>
         </div>
@@ -75,7 +84,7 @@ function SignUpForm(props) {
       <div className="mb-3 row d-flex justify-content-center">
         <div className="col col-md-9">
           <label htmlFor="email" className="form-label">
-            Email *
+            Email <span className="text-danger">*</span>
           </label>
           <input
             required
@@ -87,7 +96,11 @@ function SignUpForm(props) {
             placeholder="Enter your email"
             aria-describedby="emailHelp"
           />
-          <div id="emailHelp" className="form-text">
+          <div
+            id="emailHelp"
+            className="form-text"
+            style={{ color: "rgb(150,150,160)" }}
+          >
             So that we can contact you in case something goes wrong.
           </div>
         </div>
@@ -95,7 +108,7 @@ function SignUpForm(props) {
       <div className="mb-3 row d-flex justify-content-center">
         <div className="col col-md-9">
           <label htmlFor="password" className="form-label">
-            Password *
+            Password <span className="text-danger">*</span>
           </label>
           <input
             required
@@ -110,7 +123,11 @@ function SignUpForm(props) {
             maxLength="128"
             aria-describedby="passwordHelp"
           />
-          <div id="passwordHelp" className="form-text">
+          <div
+            id="passwordHelp"
+            className="form-text"
+            style={{ color: "rgb(150,150,160)" }}
+          >
             Must be between 8 and 128 characters long. Letters and numbers only.
           </div>
         </div>
