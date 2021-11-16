@@ -26,6 +26,7 @@ if (
 
 import express from "express";
 
+import { portalRouter } from "./routes/portal";
 import { quotesRouter } from "./routes/quotes";
 import { registerRouter } from "./routes/register";
 
@@ -34,6 +35,7 @@ app.set("trust proxy", true);
 
 app.use("/quotes", quotesRouter);
 app.use("/register", registerRouter);
+app.use("/portal", portalRouter);
 
 const port =
   process.env.NODE_ENV === "development"

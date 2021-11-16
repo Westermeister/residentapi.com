@@ -39,6 +39,7 @@ dist:
 .PHONY: scripts
 scripts: prettier dist
 	npx babel --presets react-app/prod -o $(FRONTEND_DIST)/signup.js $(FRONTEND_SRC)/signup.jsx
+	npx babel --presets react-app/prod -o $(FRONTEND_DIST)/portal.js $(FRONTEND_SRC)/portal.jsx
 	npx tsc
 	cp -r $(BACKEND_SRC)/tables $(BACKEND_DIST)
 

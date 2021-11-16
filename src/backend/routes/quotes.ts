@@ -5,7 +5,8 @@
 
 import express from "express";
 
-import { validateUserRequest } from "../middleware/validateUserRequest";
+import { authenticateUser } from "../middleware/authenticateUser";
+import { rateLimit } from "../middleware/rateLimit";
 import { staticDatabase } from "../database/bindings";
 
 /**
@@ -125,7 +126,7 @@ function serveQuote(req: express.Request, res: express.Response): void {
 }
 
 const quotesRouter = express.Router();
-quotesRouter.use(validateUserRequest);
+quotesRouter.use(authenticateUser, rateLimit);
 quotesRouter.get("/", serveQuote);
 
 export { quotesRouter };

@@ -79,15 +79,17 @@ async function registerUser(
   res: express.Response
 ): Promise<void> {
   if (!inputsPresent(req)) {
-    res.status(400).json({ error: "Missing input(s)." });
+    res.status(400).json({ message: "Missing input(s)." });
     return;
   }
   if (!inputsClean(req)) {
-    res.status(400).json({ error: "Malformed input(s)." });
+    res.status(400).json({ message: "Malformed input(s)." });
     return;
   }
   if (!uniqueUsername(req.body.username)) {
-    res.status(409).json({ error: `Username already exists:` });
+    res
+      .status(409)
+      .json({ message: `Username already exists: ${req.body.username}` });
     return;
   }
   const passwordSaltedHash = await argon2.hash(req.body.password, {
