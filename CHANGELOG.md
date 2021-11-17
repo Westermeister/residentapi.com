@@ -1,3 +1,7 @@
+# 2021.11.16.1
+
+- Fixed outdated `error` JSON property in quotes route. Changed to correct name: `message`
+
 # 2021.11.16
 
 - Moved from generated identity and secret keys to user-generated username and password combinations.
