@@ -121,7 +121,7 @@ function serveQuote(req: express.Request, res: express.Response): void {
     }
     res.status(200).json(quote);
   } catch (e) {
-    res.status(400).json({ error: (e as Error).message });
+    res.status(400).json({ message: (e as Error).message });
   }
 }
 
