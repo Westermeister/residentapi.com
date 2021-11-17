@@ -46,6 +46,27 @@ beforeEach(async () => {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 });
 
+test("Make an unauthenticated request", async () => {
+  const response = await fetch(QUOTES_API_ENDPOINT, { method: "get" });
+  expect(response.status).toBe(400);
+});
+
+test("Make a request with a false username", async () => {
+  const response = await fetch(QUOTES_API_ENDPOINT, {
+    method: "get",
+    headers: { "Authorization": "Basic " + Buffer.from("fakekennedy:marryMeAda", "ascii").toString("base64") }
+  });
+  expect(response.status).toBe(401);
+});
+
+test("Make a request with an incorrect password", async () => {
+  const response = await fetch(QUOTES_API_ENDPOINT, {
+    method: "get",
+    headers: { "Authorization": "Basic " + Buffer.from("lkennedy:marryMeClaire", "ascii").toString("base64") }
+  });
+  expect(response.status).toBe(401);
+});
+
 test("Request a random quote", async () => {
   const response = await fetch(QUOTES_API_ENDPOINT, {
     method: "get",
