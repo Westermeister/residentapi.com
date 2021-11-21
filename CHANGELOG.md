@@ -1,3 +1,7 @@
+# 2021.11.20
+
+- Added a simple spiel to `README.md` explaining the basics of the repository's structure.
+
 # 2021.11.16.1
 
 - Fixed outdated `error` JSON property in quotes route. Changed to correct name: `message`
